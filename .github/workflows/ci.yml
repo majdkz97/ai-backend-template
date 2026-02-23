@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Lint with flake8 (placeholder)
+      run: |
+        # Install flake8 if you want real linting later
+        # pip install flake8
+        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        echo "Lint step placeholder – add flake8/pylint later"
+
+    - name: Run tests (placeholder)
+      run: |
+        # When you add pytest later:
+        # pytest
+        echo "Tests placeholder – add real tests in future weeks"
