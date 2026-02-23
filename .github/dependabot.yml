@@ -1,0 +1,18 @@
+# .github/dependabot.yml
+version: 2
+updates:
+  # Enable version updates for pip (Python packages)
+  - package-ecosystem: "pip"
+    directory: "/"               # ← root of repo (where requirements.txt lives)
+    schedule:
+      interval: "weekly"         # can be daily/weekly/monthly
+    open-pull-requests-limit: 5  # max open PRs at once (prevents spam)
+    labels:
+      - "dependencies"           # optional – adds label to PRs
+      - "python"
+
+  # Optional: If you later add GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
