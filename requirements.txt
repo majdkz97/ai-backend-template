@@ -3,3 +3,5 @@ uvicorn[standard]==0.41.0
 pydantic-settings==2.13.1
 python-dotenv==1.2.1
 loguru==0.7.3
+sqlmodel==0.0.22
+psycopg2-binary==2.9.9
