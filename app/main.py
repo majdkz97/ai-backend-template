@@ -7,14 +7,59 @@ from .models import Item
 from .schemas import ItemCreate, ItemResponse
 from uuid import uuid4
 from datetime import datetime
+import sys
+from fastapi.responses import JSONResponse
+from fastapi.requests import Request
+from fastapi.openapi.utils import get_openapi
+from .auth import ApiKeyMiddleware
 
-logger.add("app.log", rotation="500 MB", level="INFO")
+logger.remove()  # Remove default handler
+logger.add(
+    "logs/app.log",
+    rotation="500 MB",      # Rotate when file reaches 500 MB
+    retention="10 days",    # Keep logs for 10 days
+    level="INFO",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message} | {extra}"
+)
+logger.add(
+    sys.stdout,
+    level="DEBUG",          # Show DEBUG in console during dev
+    format="{time} | {level} | {message}"
+)
 
 app = FastAPI(
     title="Majd's AI Backend Template",
     description="Reusable FastAPI + Postgres template",
     version="0.1.0",
 )
+app.add_middleware(ApiKeyMiddleware)
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    security_schemes = openapi_schema.setdefault("components", {}).setdefault(
+        "securitySchemes", {}
+    )
+    security_schemes["ApiKeyAuth"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+    }
+    for path in openapi_schema.get("paths", {}).values():
+        for method in path.values():
+            method.setdefault("security", []).append({"ApiKeyAuth": []})
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi  # type: ignore[assignment]
 
 @app.on_event("startup")
 def on_startup():
@@ -51,3 +96,11 @@ def read_item(item_id: str, session: Session = Depends(get_session)):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    logger.error(f"HTTP error {exc.status_code}: {exc.detail} - {request.url}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )

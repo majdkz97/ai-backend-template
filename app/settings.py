@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     )
 
     SECRET_KEY: str
-    DATABASE_URL: Optional[str] = None   # ← Use Optional[str] instead of str | None
-    API_KEY: Optional[str] = None        # ← Same here
+    DATABASE_URL: str  
+    API_KEY: str   
+        # ← Same here
 
 settings = Settings()
