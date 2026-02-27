@@ -1,6 +1,10 @@
 # AI Backend Template
 
-Reusable FastAPI + PostgreSQL + Docker Compose template for AI projects (RAG, agents, multimodal apps).
+Live Demo: https://ai-backend-template-production.up.railway.app/docs
+
+Reusable FastAPI + PostgreSQL + Docker template for AI projects (RAG, agents, multimodal).
+
+Try it: Create and list items in /docs!
 
 ## Features
 - FastAPI with Pydantic & SQLModel
