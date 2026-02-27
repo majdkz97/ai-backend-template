@@ -1,17 +1,12 @@
-from fastapi import FastAPI, HTTPException, Depends
-from sqlmodel import Session, select
-from loguru import logger
-from .settings import settings
-from .database import engine, get_session, create_db_and_tables
-from .models import Item
-from .schemas import ItemCreate, ItemResponse
-from uuid import uuid4
-from datetime import datetime
-import sys
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
+from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-from .auth import ApiKeyMiddleware
+from loguru import logger
+import sys
+
+from .api import api_router
+from .core import ApiKeyMiddleware, create_db_and_tables
 
 logger.remove()  # Remove default handler
 logger.add(
@@ -33,6 +28,7 @@ app = FastAPI(
     version="0.1.0",
 )
 app.add_middleware(ApiKeyMiddleware)
+app.include_router(api_router)
 
 
 def custom_openapi():
@@ -75,27 +71,6 @@ def read_root():
 def health_check():
     logger.debug("Health check performed")
     return {"status": "healthy"}
-
-@app.post("/items/", response_model=ItemResponse)
-def create_item(item: ItemCreate, session: Session = Depends(get_session)):
-    db_item = Item(**item.dict())
-    session.add(db_item)
-    session.commit()
-    session.refresh(db_item)
-    logger.info(f"Item created: {db_item.id}")
-    return db_item
-
-@app.get("/items/", response_model=list[ItemResponse])
-def read_items(session: Session = Depends(get_session)):
-    items = session.exec(select(Item)).all()
-    return items
-
-@app.get("/items/{item_id}", response_model=ItemResponse)
-def read_item(item_id: str, session: Session = Depends(get_session)):
-    item = session.get(Item, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return item
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
